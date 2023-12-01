@@ -1,3 +1,6 @@
+import smartpy as sp
+
+
 class AccounTez(sp.Contract):
 
     CFG_ALIAS_MIN_LENGTH = 3
