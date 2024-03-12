@@ -7,12 +7,12 @@ class AccounTez(sp.Contract):
     CFG_ALIAS_MAX_LENGTH = 15
     CFG_ALIAS_SYMBOLS = "abcdefghijklmnopqrstuvwxyz0123456789_"
 
-    ERR_INVALID_TX_AMOUNT         = "ACCTEZ_ERR invalid tx amount"
-    ERR_INVALID_SYMBOL            = "ACCTEZ_ERR invalid symbol"
-    ERR_ACCOUNT_NOT_FOUND         = "ACCTEZ_ERR account is not found"
-    ERR_ACCOUNT_ALREADY_REGISTRED = "ACCTEZ_ERR account is already registered"
-    ERR_ALIAS_ALREADY_EXISTS      = "ACCTEZ_ERR alias already exists"
-    ERR_ALIAS_LENGTH_OUT_OF_RANGE = "ACCTEZ_ERR alias length has to be in [{}..{}]".format(CFG_ALIAS_MIN_LENGTH, CFG_ALIAS_MAX_LENGTH)
+    ERR_INVALID_TX_AMOUNT         = "ACCOUNTEZ_ERR invalid tx amount"
+    ERR_INVALID_SYMBOL            = "ACCOUNTEZ_ERR invalid symbol"
+    ERR_ACCOUNT_NOT_FOUND         = "ACCOUNTEZ_ERR account is not found"
+    ERR_ACCOUNT_ALREADY_REGISTRED = "ACCOUNTEZ_ERR account is already registered"
+    ERR_ALIAS_ALREADY_EXISTS      = "ACCOUNTEZ_ERR alias already exists"
+    ERR_ALIAS_LENGTH_OUT_OF_RANGE = "ACCOUNTEZ_ERR alias length has to be in [{}..{}]".format(CFG_ALIAS_MIN_LENGTH, CFG_ALIAS_MAX_LENGTH)
 
 
     def get_account_type():
@@ -59,29 +59,29 @@ class AccounTez(sp.Contract):
             c.value = sp.slice(alias, i, 1).open_some()
             sp.verify(d.value.contains(c.value), message = AccounTez.ERR_INVALID_SYMBOL + ": " + c.value)
         sp.verify(~self.data.dns.contains(alias), message = AccounTez.ERR_ALIAS_ALREADY_EXISTS)
-        account = sp.local("a", self.data.accounts.get(sp.sender, default_value = AccounTez.create_account("")))
+        account = sp.local("a", self.data.accounts.get(sp.source, default_value = AccounTez.create_account("")))
         sp.verify(sp.len(account.value.alias) == 0, message = AccounTez.ERR_ACCOUNT_ALREADY_REGISTRED)
         account.value.alias = alias
-        self.data.accounts[sp.sender] = account.value
-        self.data.dns[alias] = sp.sender
+        self.data.accounts[sp.source] = account.value
+        self.data.dns[alias] = sp.source
     
 
     @sp.entry_point()
     def set_account_data(self, params):
         sp.set_type(params, sp.TMap(k = sp.TString, v = sp.TBytes))
         sp.verify(sp.amount == sp.mutez(0), message = AccounTez.ERR_INVALID_TX_AMOUNT)
-        account = sp.local("a", self.data.accounts.get(sp.sender, default_value = AccounTez.create_account("")))
+        account = sp.local("a", self.data.accounts.get(sp.source, default_value = AccounTez.create_account("")))
         sp.for entry in params.items():
             account.value.data[entry.key] = entry.value
-        self.data.accounts[sp.sender] = account.value
+        self.data.accounts[sp.source] = account.value
 
 
     @sp.entry_point()
     def remove_account_data(self, params):
         sp.set_type(params, sp.TList(t = sp.TString))
         sp.verify(sp.amount == sp.mutez(0), message = AccounTez.ERR_INVALID_TX_AMOUNT)
-        data = sp.local("data", self.data.accounts.get(sp.sender, message = AccounTez.ERR_ACCOUNT_NOT_FOUND).data)
+        data = sp.local("data", self.data.accounts.get(sp.source, message = AccounTez.ERR_ACCOUNT_NOT_FOUND).data)
         sp.for key in params:
             del data.value[key]
-        self.data.accounts[sp.sender].data = data.value
+        self.data.accounts[sp.source].data = data.value
 
