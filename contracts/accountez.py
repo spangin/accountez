@@ -18,22 +18,16 @@ class AccounTez(sp.Contract):
     def get_account_type():
         return sp.TRecord(alias = sp.TString, reg_date = sp.TTimestamp, data = sp.TMap(k = sp.TString, v = sp.TBytes))
 
-    def create_account(alias):
-        return sp.record(alias = alias, reg_date = sp.now, data = sp.map(l = {}, tkey = sp.TString, tvalue = sp.TBytes))
+    def create_account():
+        return sp.record(alias = "", reg_date = sp.now, data = sp.map(tkey = sp.TString, tvalue = sp.TBytes))
 
 
     def __init__(self):
         self.init(
             dns = sp.big_map(tkey = sp.TString, tvalue = sp.TAddress),
-            accounts = sp.big_map(tkey = sp.TAddress, tvalue = AccounTez.get_account_type()),
+            accounts = sp.big_map(tkey = sp.TAddress, tvalue = AccounTez.get_account_type())
         )
 
-
-    @sp.entry_point()
-    def delete_user(self, alias):
-        del self.data.accounts[self.data.dns[alias]]
-        del self.data.dns[alias]
-        
 
     @sp.onchain_view()
     def get_address_by_alias(self, alias):
@@ -59,7 +53,7 @@ class AccounTez(sp.Contract):
             c.value = sp.slice(alias, i, 1).open_some()
             sp.verify(d.value.contains(c.value), message = AccounTez.ERR_INVALID_SYMBOL + ": " + c.value)
         sp.verify(~self.data.dns.contains(alias), message = AccounTez.ERR_ALIAS_ALREADY_EXISTS)
-        account = sp.local("a", self.data.accounts.get(sp.source, default_value = AccounTez.create_account("")))
+        account = sp.local("a", self.data.accounts.get(sp.source, default_value = AccounTez.create_account()))
         sp.verify(sp.len(account.value.alias) == 0, message = AccounTez.ERR_ACCOUNT_ALREADY_REGISTRED)
         account.value.alias = alias
         self.data.accounts[sp.source] = account.value
@@ -70,7 +64,7 @@ class AccounTez(sp.Contract):
     def set_account_data(self, params):
         sp.set_type(params, sp.TMap(k = sp.TString, v = sp.TBytes))
         sp.verify(sp.amount == sp.mutez(0), message = AccounTez.ERR_INVALID_TX_AMOUNT)
-        account = sp.local("a", self.data.accounts.get(sp.source, default_value = AccounTez.create_account("")))
+        account = sp.local("a", self.data.accounts.get(sp.source, default_value = AccounTez.create_account()))
         sp.for entry in params.items():
             account.value.data[entry.key] = entry.value
         self.data.accounts[sp.source] = account.value
