@@ -1,7 +1,7 @@
 import smartpy as sp
 
 
-AccounTez = sp.io.import_script_from_url("https://raw.githubusercontent.com/vendev1/accountez/main/contracts/accountez.py").AccounTez
+AccounTez = sp.io.import_script_from_url("https://raw.githubusercontent.com/spangin/accountez/main/contracts/accountez.py").AccounTez
 
 
 ##############################################################################
